@@ -1,5 +1,6 @@
-class Claim:
-    def __init__(self, contract_number, description, police_reported): #läuft jedes Mal, wenn neue Schadenmeldung erstelt wird.
-        self.contract_number = contract_number
-        self.description = description
-        self.police_reported = police_reported
+from pydantic import BaseModel, Field
+
+class Claim(BaseModel):
+    contract_number: str = Field(min_length=3)
+    description: str = Field(min_length=10)
+    police_reported: bool

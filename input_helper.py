@@ -2,20 +2,20 @@ def ask_contract_number():
     while True:
         contract_number = input("Vertragsnummer: ").strip()
 
-        if contract_number:
+        if len(contract_number) >= 3:
             return contract_number
 
-        print("Die Vertragsnummer darf nicht leer sein.")
+        print("Die Vertragsnummer muss mindestens 3 Zeichen lang sein.")
+
 
 def ask_description():
     while True:
         description = input("Beschreibe deinen Schaden: ").strip()
 
-        if description:
+        if len(description) >= 10:
             return description
 
-        print("Die Beschreibung darf nicht leer sein.")
-      
+        print("Die Beschreibung muss mindestens 10 Zeichen lang sein.")
 
 
 def ask_police_reported():
@@ -31,6 +31,3 @@ def ask_police_reported():
             return False
 
         print("Ungültige Eingabe. Bitte j oder n eingeben.")
-      
-
-
