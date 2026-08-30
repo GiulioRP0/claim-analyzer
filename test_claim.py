@@ -1,8 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from claim import Claim
-
+from models import Claim
 
 def test_valid_claim():
     claim = Claim(
