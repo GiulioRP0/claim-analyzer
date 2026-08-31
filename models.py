@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -11,7 +13,7 @@ class ClaimAnalysis(BaseModel):
     contract_number: str
     police_status: str
     description_length: int
-    category: str
+    category: Literal["Diebstahl", "Sachschaden", "Unbekannt"]
 
 
 class ClaimResponse(BaseModel):

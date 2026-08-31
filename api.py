@@ -1,7 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from models import Claim, ClaimResponse
-from analyzer import analyze_claim
+from analyzer import analyze_claim, LLMServiceError
 
 
 app = FastAPI()
@@ -14,11 +14,18 @@ def root():
 
 @app.post("/claims", response_model=ClaimResponse)
 def create_claim(claim: Claim):
-    analysis = analyze_claim(claim)
+    try:
+        analysis = analyze_claim(claim)
 
-    return {
-        "status": "success",
-        "message": "Schadenmeldung wurde analysiert.",
-        "claim": claim,
-        "analysis": analysis
-    }
+        return {
+            "status": "success",
+            "message": "Schadenmeldung wurde analysiert.",
+            "claim": claim,
+            "analysis": analysis
+        }
+
+    except LLMServiceError:
+        raise HTTPException(
+            status_code=503,
+            detail="Die KI-Klassifizierung ist momentan nicht verfügbar."
+        )
