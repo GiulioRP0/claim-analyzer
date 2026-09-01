@@ -20,9 +20,18 @@ def classify_claim(description: str) -> ClaimClassification:
                 {
                     "role": "system",
                     "content": (
-                        "Du klassifizierst Versicherungsschäden. "
-                        "Erlaubte Kategorien sind ausschließlich: "
-                        "Diebstahl, Sachschaden oder Unbekannt."
+                        "Du klassifizierst Versicherungsschäden anhand der Beschreibung. "
+                        "Verwende ausschließlich eine dieser Kategorien: "
+                        "Diebstahl, Sachschaden oder Unbekannt. "
+
+                        "Definitionen: "
+                        "Diebstahl = Ein Gegenstand wurde einer Person unberechtigt weggenommen. "
+                        "Sachschaden = Ein Gegenstand wurde durch ein erkennbares äußeres Ereignis beschädigt. "
+                        "Unbekannt = Aus der Beschreibung lässt sich Diebstahl oder Sachschaden nicht sicher bestimmen. "
+
+                        "Wenn lediglich beschrieben wird, dass ein Gerät nicht mehr funktioniert, "
+                        "aber keine Ursache oder kein äußeres Schadenereignis genannt wird, "
+                        "verwende Unbekannt."
                     )
                 },
                 {

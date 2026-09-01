@@ -1,7 +1,8 @@
 from fastapi import FastAPI, HTTPException
 
 from models import Claim, ClaimResponse
-from analyzer import analyze_claim, LLMServiceError
+from analyzer import analyze_claim
+from llm_classifier import LLMServiceError
 
 
 app = FastAPI()
