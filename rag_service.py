@@ -1,48 +1,68 @@
-from ollama import chat
+from models import CoverageAssessment
+from rag_retriever import find_relevant_sections
+from llm_provider import generate_structured_response
 
-from rag_retriever import find_relevant_section
 
-
-def answer_claim_question(description: str) -> str:
+def answer_claim_question(description: str) -> CoverageAssessment:
     """
-    Beantwortet eine Schadenfrage mithilfe unseres Versicherungswissens.
+    Beurteilt einen Schaden anhand der gefundenen Versicherungsbedingungen.
 
-    Ablauf:
-    1. Passenden Abschnitt aus den Versicherungsbedingungen finden.
-    2. Diesen Abschnitt zusammen mit der Schadenbeschreibung an Qwen senden.
-    3. Qwens Antwort zurückgeben.
+    Wenn keine relevanten Bedingungen gefunden werden,
+    wird direkt ein unklarer Status zurückgegeben.
     """
 
-    # Das ist das "Retrieval":
-    # Wir suchen zuerst relevantes Wissen aus unserer eigenen Datei.
-    context = find_relevant_section(description)
+    sections = find_relevant_sections(
+        description,
+        top_k=3,
+    )
 
-    # Jetzt kommt "Augmented Generation":
-    # Qwen bekommt nicht nur die Schadenbeschreibung,
-    # sondern zusätzlich den gefundenen Versicherungs-Kontext.
-    response = chat(
-        model="qwen3:4b",
+    # Wenn unser Retriever keine relevanten Chunks findet,
+    # soll das LLM nicht raten.
+    if not sections:
+        return CoverageAssessment(
+            coverage_status="unklar",
+            reason=(
+                "In den verfügbaren Versicherungsbedingungen wurde "
+                "kein relevanter Abschnitt gefunden."
+            ),
+            missing_information=[
+                "Für diesen Schadenfall sind keine passenden "
+                "Versicherungsbedingungen vorhanden."
+            ],
+        )
+
+    context = "\n\n---\n\n".join(sections)
+
+    content = generate_structured_response(
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "Du bist ein Assistent für Versicherungsschäden. "
-                    "Beantworte die Frage ausschließlich anhand der "
-                    "bereitgestellten Versicherungsbedingungen. "
-                    "Wenn die Informationen nicht ausreichen, sage das klar. "
-                    "Erfinde keine Versicherungsbedingungen."
+                    "Du beurteilst Versicherungsschäden ausschließlich anhand "
+                    "der bereitgestellten Versicherungsbedingungen. "
+
+                    "Verwende 'potenziell_gedeckt', wenn die bekannten "
+                    "Informationen grundsätzlich für eine Deckung sprechen. "
+
+                    "Verwende 'nicht_gedeckt', wenn aus den Bedingungen klar "
+                    "hervorgeht, dass der Schaden nicht gedeckt ist. "
+
+                    "Verwende 'unklar', wenn wichtige Informationen fehlen, "
+                    "um die Deckung sicher beurteilen zu können. "
+
+                    "Trage fehlende Informationen in missing_information ein. "
+                    "Erfinde keine fehlenden Informationen."
                 ),
             },
             {
                 "role": "user",
                 "content": (
                     f"Schadenbeschreibung:\n{description}\n\n"
-                    f"Relevante Versicherungsbedingungen:\n{context}\n\n"
-                    "Beurteile anhand dieser Informationen, "
-                    "ob der Schaden grundsätzlich versichert sein könnte."
+                    f"Versicherungsbedingungen:\n{context}"
                 ),
             },
         ],
+        response_schema=CoverageAssessment.model_json_schema(),
     )
 
-    return response.message.content
+    return CoverageAssessment.model_validate_json(content)

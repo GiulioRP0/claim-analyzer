@@ -21,3 +21,14 @@ class ClaimResponse(BaseModel):
     message: str
     claim: Claim
     analysis: ClaimAnalysis
+
+class CoverageAssessment(BaseModel):
+    coverage_status: Literal[
+        "potenziell_gedeckt",
+        "nicht_gedeckt",
+        "unklar",
+    ]
+
+    reason: str
+
+    missing_information: list[str]

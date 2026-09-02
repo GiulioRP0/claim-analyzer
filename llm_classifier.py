@@ -1,7 +1,8 @@
 from typing import Literal
 
-from ollama import chat
 from pydantic import BaseModel
+
+from llm_provider import generate_structured_response
 
 
 class ClaimClassification(BaseModel):
@@ -14,8 +15,7 @@ class LLMServiceError(Exception):
 
 def classify_claim(description: str) -> ClaimClassification:
     try:
-        response = chat(
-            model="qwen3:4b",
+        content = generate_structured_response(
             messages=[
                 {
                     "role": "system",
@@ -32,19 +32,17 @@ def classify_claim(description: str) -> ClaimClassification:
                         "Wenn lediglich beschrieben wird, dass ein Gerät nicht mehr funktioniert, "
                         "aber keine Ursache oder kein äußeres Schadenereignis genannt wird, "
                         "verwende Unbekannt."
-                    )
+                    ),
                 },
                 {
                     "role": "user",
-                    "content": description
-                }
+                    "content": description,
+                },
             ],
-            format=ClaimClassification.model_json_schema()
+            response_schema=ClaimClassification.model_json_schema(),
         )
 
-        return ClaimClassification.model_validate_json(
-            response.message.content
-        )
+        return ClaimClassification.model_validate_json(content)
 
     except Exception as error:
         raise LLMServiceError(
