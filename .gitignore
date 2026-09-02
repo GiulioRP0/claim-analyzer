@@ -10,3 +10,6 @@ __pycache__/
 
 # IDE settings
 .idea/
+
+# Generated SQLite databases
+*.db
